@@ -7,3 +7,15 @@ dist/
 .idea/
 .env
 .env.local
+
+# Local lyric-service state and evaluation artifacts
+__pycache__/
+*.pyc
+*.pid
+*.lock.tmp
+scripts/lmstudio-lyrics/startup.lock
+scripts/lmstudio-lyrics/*.jsonl
+scripts/lmstudio-lyrics/*-verification.json
+*.gguf
+*.safetensors
+.env.*

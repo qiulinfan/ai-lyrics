@@ -52,17 +52,17 @@ export const MAX_MODELS = 3;
 export const MAX_RECENT_MODELS = 5;
 
 export const defaultAiSettings: AiSettings = {
-  provider: "ollama",
+  provider: "openai",
   ollama: { baseUrl: "http://localhost:11434", models: ["qwen2.5"] },
-  openai: { baseUrl: "https://api.openai.com/v1", apiKey: "", models: ["gpt-4o-mini"] },
+  openai: { baseUrl: "http://127.0.0.1:11435/v1", apiKey: "", models: ["lyrics-hy18b"] },
   targetLang: "中文",
-  uiLang: "auto",
-  showAllAnalyses: false,
+  uiLang: "zh-CN",
+  showAllAnalyses: true,
   useCorsProxy: false,
   simpleRequest: false,
   streaming: true,
-  disableThinking: false,
-  chunkSize: 22,
+  disableThinking: true,
+  chunkSize: 8,
   prefetch: false,
   prefetchCount: 1,
   recentModels: [],
@@ -259,6 +259,11 @@ export class AiService {
   private readonly persist?: AnalysisCache;
   private readonly mem = new Map<string, LineAnalysis>();
   private readonly inflight = new Map<string, Promise<LineAnalysis>>();
+  private remember(key: string, value: LineAnalysis): void {
+    this.mem.delete(key);
+    this.mem.set(key, value);
+    while (this.mem.size > 1024) this.mem.delete(this.mem.keys().next().value!);
+  }
 
   constructor(provider: AiProvider | null, targetLang = "中文", cache?: AnalysisCache) {
     this.provider = provider;
@@ -294,7 +299,7 @@ export class AiService {
 
   /** 缓存 key：歌曲 + 目标语言 + 行文本（按歌曲隔离；同一首歌内相同行仍复用）。 */
   private keyOf(songId: string, line: string): string {
-    return `${songId}${this.targetLang}${line}`;
+    return `local-hy18b-v3:${songId}${this.targetLang}${line}`;
   }
 
   /** 解析单行：内存 → 持久化 → 请求；相同行并发合并。用于单词点查等按需场景。 */
@@ -304,7 +309,7 @@ export class AiService {
 
     const cached = this.mem.get(key) ?? (this.persist ? await this.persist.get(key) : null);
     if (cached) {
-      this.mem.set(key, cached);
+      this.remember(key, cached);
       return cached;
     }
 
@@ -315,7 +320,7 @@ export class AiService {
     const p = provider
       .analyzeLine({ ...input, targetLang: this.targetLang }, signal)
       .then(async (res) => {
-        this.mem.set(key, res);
+        this.remember(key, res);
         if (this.persist) await this.persist.set(key, res);
         this.inflight.delete(key);
         return res;
@@ -378,7 +383,7 @@ export class AiService {
         let hit = this.mem.get(key) ?? null;
         if (!hit && this.persist) hit = await this.persist.get(key);
         if (hit) {
-          this.mem.set(key, hit);
+          this.remember(key, hit);
           propagate(i, hit);
         } else {
           needed.push(i);
@@ -410,7 +415,7 @@ export class AiService {
       // 不让空结果（模型漏行 / 末尾整段重解析丢行）覆盖已经填好的行——否则会出现
       // 「已解析的行突然回到空」的闪烁。已有好值时直接跳过这次空写入。
       if (isEmptyAnalysis(a) && !isEmptyAnalysis(this.mem.get(key))) return;
-      this.mem.set(key, a);
+      this.remember(key, a);
       if (this.persist) await this.persist.set(key, a);
       propagate(globalIdx, a);
     };
@@ -424,7 +429,7 @@ export class AiService {
           if (gi === undefined) return;
           const key = this.keyOf(songId, lines[gi]);
           if (isEmptyAnalysis(a) && !isEmptyAnalysis(this.mem.get(key))) return;
-          this.mem.set(key, a);
+          this.remember(key, a);
           if (this.persist) void this.persist.set(key, a);
           propagate(gi, a);
         };

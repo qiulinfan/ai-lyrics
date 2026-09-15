@@ -6,13 +6,13 @@
   "type": "module",
   "license": "MIT",
   "author": "ai-lyrics contributors",
-  "homepage": "https://github.com/onewilk/ai-lyrics#readme",
+  "homepage": "https://github.com/qiulinfan/ai-lyrics#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/onewilk/ai-lyrics.git"
+    "url": "https://github.com/qiulinfan/ai-lyrics.git"
   },
   "bugs": {
-    "url": "https://github.com/onewilk/ai-lyrics/issues"
+    "url": "https://github.com/qiulinfan/ai-lyrics/issues"
   },
   "keywords": [
     "spicetify",
@@ -32,7 +32,8 @@
     "dev": "pnpm --filter @ai-lyrics/spicetify dev",
     "typecheck": "tsc --noEmit -p apps/spicetify/tsconfig.json",
     "smoke": "node scripts/run-smoke.mjs",
-    "release": "pnpm --filter @ai-lyrics/spicetify build && cp apps/spicetify/dist/ai-lyrics.js ai-lyrics.js"
+    "release": "pnpm --filter @ai-lyrics/spicetify build && cp apps/spicetify/dist/ai-lyrics.js ai-lyrics.js",
+    "test:lyrics-service": "node --test scripts/lmstudio-lyrics/bridge.test.mjs scripts/lmstudio-lyrics/idle-model.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

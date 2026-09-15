@@ -1,5 +1,7 @@
 # AI 歌词学习器 (ai-lyrics)
 
+> **本 fork：macOS 本地中文歌词翻译。** 新增 Hy-MT2-1.8B / LM Studio 适配、全局并发限制、模型按需加载和空闲 10 分钟卸载；默认中文翻译，歌词来源为 LRCLIB。详见[安装与生命周期说明](docs/lmstudio-hy-lyrics.md)。基于 [onewilk/ai-lyrics](https://github.com/onewilk/ai-lyrics)，保留上游署名和 MIT 许可证。
+
 [English](./README.md) · **简体中文**
 
 边听歌边学语言：自动识别当前播放歌曲 → 联网抓取歌词 → 整页跟随进度滚动显示歌词，每行下方用 AI 提供**翻译 / 关键词解析 / 语法要点 / 例句**，支持点击歌词或拖动底部进度条同步调整播放进度。

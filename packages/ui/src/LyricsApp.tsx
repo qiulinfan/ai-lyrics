@@ -100,7 +100,7 @@ export function LyricsApp({
   userAgent,
   directFetch,
   proxyFetch,
-  storageKey = "ai-lyrics:settings",
+  storageKey = "ai-lyrics:settings:hy18b-v1",
   hostLocale,
 }: LyricsAppProps) {
   useEffect(() => injectStyles(), []);

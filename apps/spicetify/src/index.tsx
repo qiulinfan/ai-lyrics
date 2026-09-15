@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { LyricsApp, makeT, resolveUiLang } from "@ai-lyrics/ui";
 import type { LyricsProvider } from "@ai-lyrics/lyrics-core";
 import { SpicetifyPlayerAdapter } from "./SpicetifyPlayerAdapter.js";
-import { createSpotifyLyricsProvider } from "./spotify-lyrics-provider.js";
 import { makeCosmosFetch } from "./cosmos-fetch.js";
 import { Router } from "./router.js";
 import { trackMainViewInsets } from "./insets.js";
@@ -84,7 +83,7 @@ async function createPlayerbarButton(
   };
 }
 
-const STORAGE_KEY = "ai-lyrics:settings";
+const STORAGE_KEY = "ai-lyrics:settings:hy18b-v1";
 
 /** Spotify 客户端语言（界面语言设为 auto 时据此决定）。 */
 function getHostLocale(): string | undefined {
@@ -108,7 +107,7 @@ async function main(): Promise<void> {
 
   const hostLocale = getHostLocale();
   const adapter = new SpicetifyPlayerAdapter();
-  const extraProviders: LyricsProvider[] = [createSpotifyLyricsProvider()];
+  const extraProviders: LyricsProvider[] = []; // Local setup: LRCLIB only.
   // 直连（默认，隐私安全、内网可达）；经 Spicetify cors-proxy 转发为备用（公网无 CORS）。
   const directFetch: typeof fetch = (...args) => window.fetch(...args);
   const proxyFetch = makeCosmosFetch();
@@ -162,7 +161,7 @@ async function main(): Promise<void> {
     userAgent: "ai-lyrics (https://github.com/ai-lyrics)",
     directFetch,
     proxyFetch,
-    storageKey: "ai-lyrics:settings",
+    storageKey: "ai-lyrics:settings:hy18b-v1",
     isPanelActive: () => router.isActive(),
   });
 

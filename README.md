@@ -1,5 +1,7 @@
 # ai-lyrics
 
+> **Fork: local Chinese lyric translation on macOS.** This fork adds a bounded LM Studio bridge for Hy-MT2-1.8B, on-demand model loading, and automatic unloading after ten idle minutes. It defaults to Chinese translation and uses LRCLIB as its lyric source. See [setup and lifecycle](docs/lmstudio-hy-lyrics.md). Based on [onewilk/ai-lyrics](https://github.com/onewilk/ai-lyrics); upstream copyright and MIT license are retained.
+
 **English** · [简体中文](./README_zh.md)
 
 Learn a language while you listen: ai-lyrics detects the currently playing track, fetches its lyrics, shows them full-page scrolling in sync with playback, and renders AI **translation / keyword breakdown / grammar notes / examples** under each line. Click any line or drag the progress bar to seek.

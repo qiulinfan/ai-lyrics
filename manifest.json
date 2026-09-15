@@ -1,9 +1,24 @@
 {
   "name": "AI Lyrics",
-  "description": "Full-page lyrics with AI translation, keywords, grammar notes & examples — local (LM Studio/Ollama) or any OpenAI-compatible model.",
+  "description": "Local Chinese lyric translation with Hy-MT2 and LM Studio, bounded concurrency, and idle model unloading.",
   "preview": "docs/preview.png",
   "main": "ai-lyrics.js",
   "readme": "README.md",
-  "tags": ["lyrics", "translation", "ai", "llm", "language-learning"],
-  "authors": [{ "name": "onewilk", "url": "https://github.com/onewilk" }]
+  "tags": [
+    "lyrics",
+    "translation",
+    "ai",
+    "llm",
+    "language-learning"
+  ],
+  "authors": [
+    {
+      "name": "onewilk",
+      "url": "https://github.com/onewilk"
+    },
+    {
+      "name": "qiulinfan",
+      "url": "https://github.com/qiulinfan"
+    }
+  ]
 }
