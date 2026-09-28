@@ -7,6 +7,7 @@ import { makeCosmosFetch } from "./cosmos-fetch.js";
 import { Router } from "./router.js";
 import { trackMainViewInsets } from "./insets.js";
 import { startPrefetch } from "./prefetch.js";
+import { createSpotifyLyricsProvider } from "./spotify-lyrics-provider.js";
 
 const ICON = `<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h11A1.5 1.5 0 0 1 15 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zM2.5 3.5v9h11v-9h-11z"/><path d="M3.5 6h6v1.2h-6zM10.5 6h2v1.2h-2zM3.5 9h2v1.2h-2zM6.5 9h6v1.2h-6z"/></svg>`;
 
@@ -107,7 +108,7 @@ async function main(): Promise<void> {
 
   const hostLocale = getHostLocale();
   const adapter = new SpicetifyPlayerAdapter();
-  const extraProviders: LyricsProvider[] = []; // Local setup: LRCLIB only.
+  const extraProviders: LyricsProvider[] = [createSpotifyLyricsProvider()];
   // 直连（默认，隐私安全、内网可达）；经 Spicetify cors-proxy 转发为备用（公网无 CORS）。
   const directFetch: typeof fetch = (...args) => window.fetch(...args);
   const proxyFetch = makeCosmosFetch();

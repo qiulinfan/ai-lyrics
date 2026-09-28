@@ -46,7 +46,7 @@ The fork defaults to:
 | UI language | Simplified Chinese |
 | Background prefetch | Off |
 
-The bridge serves this fixed local model and Chinese target. It is not a general-purpose OpenAI proxy. It connects to LM Studio at `127.0.0.1:1234`; no public model endpoint is used. Lyrics are fetched from LRCLIB. The fork disables the Spotify private-lyrics fallback.
+The bridge serves this fixed local model and Chinese target. It is not a general-purpose OpenAI proxy. It connects to LM Studio at `127.0.0.1:1234`; no public model endpoint is used. Lyrics use Spotify's track-id source when available, then fall back to LRCLIB.
 
 ## Translation and lifecycle
 

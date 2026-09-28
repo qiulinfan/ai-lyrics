@@ -79,29 +79,39 @@ export class LrclibProvider implements LyricsProvider {
   }
 
   private async searchBest(q: LyricsQuery, signal?: AbortSignal): Promise<LrclibRecord | null> {
-    const params = new URLSearchParams({ track_name: q.title, artist_name: q.artist });
-    const res = await this.fetchImpl(`${this.base}/api/search?${params}`, {
-      headers: this.headers(),
-      signal,
-    });
-    if (!res.ok) return null;
-    const list = (await res.json()) as LrclibRecord[];
-    if (!Array.isArray(list) || list.length === 0) return null;
-
     const targetSec = q.durationMs / 1000;
-    // 优先有同步歌词、且时长最接近的候选。
-    const ranked = list
-      .filter((r) => r.syncedLyrics || r.plainLyrics)
-      .sort((a, b) => {
-        const synced = Number(!!b.syncedLyrics) - Number(!!a.syncedLyrics);
-        if (synced !== 0) return synced;
-        return Math.abs((a.duration ?? 0) - targetSec) - Math.abs((b.duration ?? 0) - targetSec);
+    const search = async (includeArtist: boolean): Promise<LrclibRecord[]> => {
+      const params = new URLSearchParams({ track_name: q.title });
+      if (includeArtist) params.set("artist_name", q.artist);
+      const res = await this.fetchImpl(`${this.base}/api/search?${params}`, {
+        headers: this.headers(),
+        signal,
       });
-    const top = ranked[0];
-    if (!top) return null;
-    // 时长偏差过大（>15s）则视为不可靠。
-    if (top.duration && Math.abs(top.duration - targetSec) > 15) return null;
-    return top;
+      if (!res.ok) return [];
+      const list = (await res.json()) as LrclibRecord[];
+      return Array.isArray(list) ? list : [];
+    };
+    const best = (list: LrclibRecord[], exactTitle: boolean): LrclibRecord | null => {
+      const title = q.title.normalize("NFKC").trim().toLowerCase();
+      const ranked = list
+        .filter((r) => !r.instrumental && (r.syncedLyrics || r.plainLyrics))
+        .filter((r) => !exactTitle || r.trackName.normalize("NFKC").trim().toLowerCase() === title)
+        .filter((r) => !r.duration || (targetSec > 0 && Math.abs(r.duration - targetSec) <= 15))
+        .sort((a, b) => {
+          const synced = Number(!!b.syncedLyrics) - Number(!!a.syncedLyrics);
+          if (synced !== 0) return synced;
+          return Math.abs((a.duration ?? 0) - targetSec) - Math.abs((b.duration ?? 0) - targetSec);
+        });
+      return ranked[0] ?? null;
+    };
+
+    const withArtist = !!q.artist.trim();
+    const match = best(await search(withArtist), !withArtist);
+    if (match || !withArtist || targetSec <= 0) return match;
+
+    // Spotify 可能显示本地化艺人名，而 LRCLIB 使用另一种语言的艺名。
+    // 只在艺人搜索未命中时，凭精确曲名与 ±15 秒时长作最后回退。
+    return best(await search(false), true);
   }
 
   private toResult(rec: LrclibRecord): LyricsResult {

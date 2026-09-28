@@ -69,6 +69,41 @@ try {
   console.log("  ⚠ 在线检索异常（可能沙箱无网络）:", (e as Error).message);
 }
 
+// 本地化艺人名未收录时，按精确曲名和时长回退；不能拿同名远时长版本或异曲顶替。
+console.log("# LRCLIB localized artist fallback");
+const localizedTitle = "ロマンスがありあまる";
+const goodRecord = {
+  id: 1,
+  trackName: localizedTitle,
+  artistName: "Gesu no Kiwami Otome",
+  albumName: null,
+  duration: 225,
+  instrumental: false,
+  plainLyrics: null,
+  syncedLyrics: "[00:01.00]matched line",
+};
+const wrongTitle = { ...goodRecord, id: 2, trackName: "another song", syncedLyrics: "[00:01.00]wrong title" };
+const wrongDuration = { ...goodRecord, id: 3, duration: 180, syncedLyrics: "[00:01.00]wrong duration" };
+const searchCalls: URL[] = [];
+const mockLrclib = (includeMatch: boolean) =>
+  (async (input: unknown) => {
+    const url = new URL(String(input));
+    searchCalls.push(url);
+    const status = url.pathname.endsWith("/get") ? 404 : 200;
+    const records = url.searchParams.has("artist_name")
+      ? []
+      : includeMatch
+        ? [wrongTitle, wrongDuration, goodRecord]
+        : [wrongTitle, wrongDuration];
+    return { ok: status === 200, status, json: async () => records } as Response;
+  }) as typeof fetch;
+const localizedQuery = { title: localizedTitle, artist: "極品下流少女", durationMs: 225_000 };
+const localizedResult = await new LrclibProvider({ fetchImpl: mockLrclib(true) }).fetch(localizedQuery);
+assert(localizedResult.status === "found" && localizedResult.lyrics.synced && localizedResult.lyrics.lines[0]?.text === "matched line", "本地化艺人名回退命中正确同步歌词");
+assert(searchCalls.length === 3 && searchCalls[1].searchParams.has("artist_name") && !searchCalls[2].searchParams.has("artist_name"), "艺人检索无结果后才按曲名重试");
+const noSafeResult = await new LrclibProvider({ fetchImpl: mockLrclib(false) }).fetch(localizedQuery);
+assert(noSafeResult.status === "not-found", "异曲或时长偏差过大时不误配歌词");
+
 // 4) ai-core parseAnalysis — 容错解析（带 ```json 包裹 + 前后噪声）
 console.log("# parseAnalysis (AI JSON 容错)");
 const messy = 'Sure! Here you go:\n```json\n{"translation":"这是真实人生吗？","language":"English","keywords":[{"word":"fantasy","reading":"/ˈfæntəsi/","pos":"n.","meaning":"幻想"}],"examples":[{"src":"It was pure fantasy.","zh":"那纯属幻想。"}]}\n```\nHope it helps!';
